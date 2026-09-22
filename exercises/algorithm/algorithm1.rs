@@ -2,8 +2,6 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
-
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
 use std::vec::*;
@@ -69,14 +67,62 @@ impl<T> LinkedList<T> {
             },
         }
     }
-	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
+	pub fn merge(list_a: LinkedList<T>, list_b: LinkedList<T>) -> Self
+	where
+		T: PartialOrd,
 	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
-        }
+		let mut merged = LinkedList::<T>::new();
+		let mut a = list_a.start;
+		let mut b = list_b.start;
+
+		// Repeatedly take the smaller head node and move it into `merged`.
+		// The nodes are already heap-allocated, so we relink the pointers
+		// instead of allocating new nodes.
+		unsafe {
+			while a.is_some() && b.is_some() {
+				let a_node = a.unwrap();
+				let b_node = b.unwrap();
+				let a_val = &(*a_node.as_ptr()).val;
+				let b_val = &(*b_node.as_ptr()).val;
+
+				let take_a = a_val <= b_val;
+				let node = if take_a {
+					a = (*a_node.as_ptr()).next;
+					a_node
+				} else {
+					b = (*b_node.as_ptr()).next;
+					b_node
+				};
+
+				(*node.as_ptr()).next = None;
+				match merged.end {
+					None => merged.start = Some(node),
+					Some(end_ptr) => (*end_ptr.as_ptr()).next = Some(node),
+				}
+				merged.end = Some(node);
+				merged.length += 1;
+			}
+
+			let remainder = if a.is_some() { a } else { b };
+			if let Some(node) = remainder {
+				match merged.end {
+					None => merged.start = Some(node),
+					Some(end_ptr) => (*end_ptr.as_ptr()).next = Some(node),
+				}
+				// Link the tail of the remainder chain to `merged.end`.
+				let mut tail = node;
+				loop {
+					merged.length += 1;
+					match (*tail.as_ptr()).next {
+						Some(next) => tail = next,
+						None => break,
+					}
+				}
+				merged.end = Some(tail);
+			}
+		}
+
+		merged
 	}
 }
 
