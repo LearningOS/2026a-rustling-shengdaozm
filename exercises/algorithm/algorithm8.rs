@@ -22,14 +22,14 @@ impl<T> Queue<T> {
         if !self.elements.is_empty() {
             Ok(self.elements.remove(0usize))
         } else {
-            Err("Queue is empty")
+            Err("Stack is empty")
         }
     }
 
     pub fn peek(&self) -> Result<&T, &str> {
         match self.elements.first() {
             Some(value) => Ok(value),
-            None => Err("Queue is empty"),
+            None => Err("Stack is empty"),
         }
     }
 
